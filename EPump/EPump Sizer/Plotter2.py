@@ -8,7 +8,6 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # current parameters: ("rp1",460,6.17,2.23,285,135) #tamb should stay above 293 or the bearing lubrication goes a little iffy
 def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank,min,max):
-
     #inputs assumed to be same across pumps
     d_H = .023 #m, from key sizing
     e_Rs = .002*1.25
@@ -80,7 +79,7 @@ def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank,min,max):
             err = 1 # breaks the seal code rn. Also generally good, dont want seal face speeds to get too high.
         return p_draw, err
     # plotting section
-    deltaTrange = np.linspace(4, 4, 8)
+    deltaTrange = np.linspace(1, 10, 20)
     nrange = np.linspace(min, max, 100)
     X, Y = np.meshgrid(nrange, deltaTrange)
 

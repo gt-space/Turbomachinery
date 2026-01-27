@@ -11,7 +11,7 @@ class impellerClass:
         elif vdot > 1:
             a = .5
         m = 0.1 * a * ((1/vdot)**(.15)) * ((45/self.n_q)**(0.06))
-        eta_opt = 1 - (0.095*((1/vdot)**m)) - (.3*((.35 - math.log10(self.n_q/23))**2)*((1/vdot)**(.05)))
+        self.eta_opt = 1 - (0.095*((1/vdot)**m)) - (.3*((.35 - math.log10(self.n_q/23))**2)*((1/vdot)**(.05)))
         m = 0.08 * a * ((1/vdot)**(.15)) * ((45/self.n_q)**(0.06))
         self.eta_H =  1 - (0.055*((1/vdot)**m)) - .2*((.26 - math.log10(self.n_q/25))**2)*((1/vdot)**(.1))
         #  casing gap below impeller
@@ -34,7 +34,7 @@ class impellerClass:
         k_RDSp = F_DSp * k_R0
         F_Rst = k_RDSp * rho * 9.81 * H * self.d_2 * b_2tot
         F_Rdyn = .12 * rho * 9.81 * H * self.d_2 * b_2tot 
-        self.f_r = F_Rdyn + F_Rst 
+        self.f_r = F_Rdyn + F_Rst         
     def summary(self):
         print("=== Impeller ===")
         print(f"Flow rate Q      : {self.Q:.4f} m³/s")

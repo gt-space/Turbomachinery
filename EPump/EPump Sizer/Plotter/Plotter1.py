@@ -1,14 +1,14 @@
 import numpy as np
 import math
 from defineImpeller import impellerClass
-from defineBearings import bearingClass
+from defineBearing import bearingClass
 from defineSeal import sealClass
 import matplotlib.pyplot as plt
-from Plotter1 import pumpPlot
+from mpl_toolkits.mplot3d import Axes3D
 
 # current parameters: ("rp1",460,6.17,2.23,285,135,0) #tamb should stay above 293 or the bearing lubrication goes a little iffy
-def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank):
-    plt.close("all")
+def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank,showpows):
+
     #inputs assumed to be same across pumps
     d_H = .023 #m, from key sizing
     e_Rs = .002*1.25
@@ -28,8 +28,8 @@ def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank):
         raise ValueError("Unknown propellant")
     H = deltaP/(rho*9.81)
 
-    def pumpPower(n):
-        deltaT = 1
+    def pumpPower(n,deltaT):
+        p_all = (n/50000)*40000 # in kW
         eta_V = .95111944218 #only used in axial force calcs, for now an estimate, later from ratio of flowrates
 
 
@@ -67,30 +67,44 @@ def pumpPlot(prop, deltaP, mdot, MR,Tamb,p_tank):
         #impeller2.summary()
         p_imp = impeller2.p #converting to kW, apply hydraulic efficiency and leak rate
         #6) apply all power losses and efficiencies
-        p_draw1 = ((p_imp/(impeller2.eta_H*1.03)) + seal.p + upperBearing.p + lowerBearing.p)
-        p_draw2 = p_imp/(impeller2.eta_H*1.03) * 1.2
-        p_draw3 = p_imp/(impeller2.eta_opt*1.03) * 1.2
+        p_draw = ((p_imp/(impeller2.eta_H*1.03)) + seal.p + upperBearing.p + lowerBearing.p)
         # Penalties/constraints
         err = 0
         if impeller2.d_2 > .08:
             err = 1
+        if p_draw / p_all > 1:
+            err = 1
+        if deltaT > 30 or deltaT < 2:
+            err = 1
         if lowerBearing.d1 > 24: #done in mm because that's what the bearing heating calcs are in
             err = 1 # breaks the seal code rn. Also generally good, dont want seal face speeds to get too high.
-        return p_draw1, p_draw2, p_draw3, err
+        return p_draw, err
     # plotting section
-    nrange = np.linspace(15000,50000,100)
-    y1, y2, y3, errs = zip(*(pumpPower(xi) for xi in nrange))
-    y1 = np.array(y1)
-    y2 = np.array(y2)
-    y3 = np.array(y3)
+    deltaTrange = np.linspace(2,30,28)
+    nrange = np.linspace(15000,30000,60)
+    x, y = np.meshgrid(nrange, deltaTrange)
+    x_flat = x.flatten()
+    y_flat = y.flatten() 
+    powers = []
+    errs = []
+    for xi, yi in zip(x_flat, y_flat):
+        powerVal, errVal = pumpPower(xi, yi)
+        powers.append(powerVal)
+        errs.append(errVal)
+    powers = np.array(powers)
+    errs = np.array(errs)
 
-    plt.plot(nrange, y1, label='Sizer')
-    plt.plot(nrange, y2, label='Shifted Hydraulic Gulich')
-    plt.plot(nrange, y3, label='Totall Gulich')
-
-    plt.xlabel('n(RPM)')
-    plt.ylabel('Power (kW)')
-    plt.legend()
-    plt.grid(True)
+    # Plot input1 vs input2
+    fig = plt.figure(figsize=(6,6))
+    ax = fig.add_subplot(111, projection='3d')
+    colors = np.where(errs==1, "darkorange", "deepskyblue")
+    ax.scatter(x_flat, y_flat, powers, color=colors)
+    if showpows == 1:
+        zvals = x_flat*.8
+        mask = (zvals <= max(powers))
+        ax.scatter(x_flat[mask], y_flat[mask], (x_flat*.8)[mask], color="mediumpurple")
+    ax.set_xlabel("n (RPM)")
+    ax.set_ylabel("ΔT(K)")
+    ax.set_zlabel("Power (W)")
+    ax.set_zlim(.95*min(powers), 1.05*max(powers))
     plt.show()
-    

@@ -11,6 +11,14 @@ class sealClass:
         self.f = .07
         self.k = .5
         self.dp = ((p_tank + (dp/6894.76) - 95)/1000000)*6894.76 # same vibey estimate for pressure loss before bearings, need to validate later. horrible unit conversions
+        if self.d1 < 18:
+            self.l = 42.5
+        elif self.d1 < 24:
+            self.l = 45
+        elif self.d1 < 28:
+            self.l = 47.5
+        else:
+            self.l = 50
     def powerLoss(self,n):
         self.fa = math.pi*((self.d3**2) - (self.d1**2))/4
         self.br = (self.d3**2 - self.d2**2)/(self.d3**2 - self.d1**2)

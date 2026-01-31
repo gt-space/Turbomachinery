@@ -1,8 +1,9 @@
 import math
+import numpy as np
 class impellerClass:
-    def __init__(self,vdot,n,H,rho,e_Rs,d_D,d_H,eta_V):
+    def __init__(self,vdot,n,H,rho,e_Rs,d_D,d_H,eta_V,visc):
         self.Q = vdot
-        self.psi = 1.09
+        self.psi = 1.1
         self.n_q = n*(math.sqrt(vdot))*(H**(-3/4))
         self.d_2 = (84.6 / n) * math.sqrt(H / self.psi)
         #efficiencies
@@ -34,7 +35,26 @@ class impellerClass:
         k_RDSp = F_DSp * k_R0
         F_Rst = k_RDSp * rho * 9.81 * H * self.d_2 * b_2tot
         F_Rdyn = .12 * rho * 9.81 * H * self.d_2 * b_2tot 
-        self.f_r = F_Rdyn + F_Rst         
+        self.f_r = F_Rdyn + F_Rst 
+
+        # Disk friction losses
+        omega = n * (2*math.pi)/60
+        self.re = (self.d_2)**2 * omega /  visc
+        r_sp = (self.d_2 - self.d_1)/2
+        eps = .0006 #Gulich's p.25
+        a2 = 1
+        phi_sp = 5.5*10**-4*self.psi**1.5*((self.n_q/20)**.4)
+        fl = np.exp(-350 * phi_sp * (((self.d_2/2) / r_sp) ** a2 - 1))
+        f_R_La = (np.log(12.5 / self.re) /np.log(0.2 * (eps / (2*self.d_2)) + 12.5 / self.re)) ** 2.15
+        R = self.d_2/2
+        krr = (math.pi * (R) / (2*self.re*s_ax)) + (.02/self.re**.2)*((1+s_ax/R)*fl*f_R_La/(1+(s_ax/2*R)))
+        if self.re < 4*10**5:
+            self.turbulence = 1  
+            self.Prr = self.p * 770 * f_R_La * fl / (self.n_q**2 * self.psi**2.5 * self.re**.2)
+        else:
+            self.turbulence = 0
+            self.Prr = self.p * 38500*krr / (self.n_q**2 * self.psi**2.5)
+
     def summary(self):
         print("=== Impeller ===")
         print(f"Flow rate Q      : {self.Q:.4f} m³/s")
@@ -45,3 +65,4 @@ class impellerClass:
         print(f"Hydraulic power   : {self.p:.2f} W")
         print(f"Axial force f_ax  : {self.f_ax:.2f} N")
         print(f"Radial force f_r  : {self.f_r:.2f} N")
+        print(f"Disk friction losses Prr: {self.Prr:.2f} W")

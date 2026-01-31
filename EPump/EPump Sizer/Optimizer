@@ -1,0 +1,52 @@
+import numpy as np
+from scipy.optimize import minimize
+from powerDraw import pumpPower
+
+def epumpOpt(prop, deltaP, mdot, MR, p_in):
+
+    # Optimization
+    x0 = [20000, 1]           # RPM, DeltaT
+    bounds = [(15000, 40000), (1, 5)]  # RPM, DeltaT
+    vec = [prop, deltaP, mdot, MR, p_in]  # fixed params
+
+    # Objective function using closure
+    def objective(x):
+        power, _, _ = pumpPower(x, vec)
+        return power
+
+    # Run optimization
+    optVals = minimize(
+        objective,
+        x0,
+        method='SLSQP',
+        bounds=bounds
+    )
+
+    # Display results
+    power, err, sizeInfo = pumpPower(optVals.x, vec)
+    if err == 1:
+        print("Warning: Impeller too large.")
+    elif err == 2:
+        print("Warning: Pump power exceeds available power.")
+    elif err == 3:
+        print("Warning: Bearing size exceeds limit.")
+    return sizeInfo
+
+def print_size_info(sizeInfo):
+    print("\nPump Sizing Results")
+    print("-" * 45)
+    for key, value in sizeInfo.items():
+        if isinstance(value, float):
+            print(f"{key:<30}: {value:>12.4g}")
+        else:
+            print(f"{key:<30}: {value}")
+
+if __name__ == "__main__":
+    results = epumpOpt(
+        prop="rp1",
+        deltaP=460,
+        mdot=6.17,
+        MR=2.23,
+        p_in=135
+    )
+    print_size_info(results)

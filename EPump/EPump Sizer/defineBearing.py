@@ -1,13 +1,16 @@
 import math
+import CoolProp.CoolProp as CP
 class bearingClass:
-    def __init__(self,bearingType,t,dt):
+    def __init__(self,bearingType,t,dt,prop,p_tank,deltaP):
         if bearingType == "AC":
             self.f = 1
             self.d1 = 20
             self.d2 = 47
             self.tb = t+dt
-            self.v1 = y = 8*10**10*self.tb**-4.282
-
+            if prop == "rp1":
+                self.v1 = 8*10**10*self.tb**-4.282
+            elif prop == "lox":
+                self.v1 = CP.PropsSI('V','T',self.tb,'P|liquid',(p_tank+deltaP-700000),'Oxygen')/CP.PropsSI("D","T",self.tb,'P|liquid',(p_tank+deltaP-700000),'Oxygen')*10**6 #convert to mm^2/s
         elif bearingType == "DG":
             self.f = 1
             self.d1 = 20

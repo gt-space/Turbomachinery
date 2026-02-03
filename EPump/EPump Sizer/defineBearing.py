@@ -1,5 +1,7 @@
 import math
 import CoolProp.CoolProp as CP
+import matplotlib.pyplot as plt
+
 class bearingClass:
     def __init__(self,bearingType,t,dt,prop,p_tank,deltaP):
         if bearingType == "AC":
@@ -7,6 +9,7 @@ class bearingClass:
             self.d1 = 20
             self.d2 = 47
             self.tb = t+dt
+            self.prop = prop
             if prop == "rp1":
                 self.v1 = 8*10**10*self.tb**-4.282
             elif prop == "lox":
@@ -76,14 +79,14 @@ class bearingClass:
             phi_rs = 1 / (math.exp  (K_rs * self.v1 * n * (self.d1 + self.d2) * math.sqrt (kz /(2*(self.d2 - self.d1)) )   )  )
             fg = R3 * (d_m**4)*(n**2)
             G_rr = R1*(d_m**1.97)*((self.fr+fg+(R2*fax))**.54)
-            self.M_rr = phi_ish*phi_rs*G_rr*((n*self.v1)**.6) 
+            self.M_rr2 = phi_ish*phi_rs*G_rr*((n*self.v1)**.6) 
             # Sliding Moment
             phi_bl = 1 / math.exp(2.6*(10**(-8)) * d_m * ((n*self.v1)**1.4))
             mu_bl = .12
             mu_ehl = .05
             mu_sl = phi_bl*mu_bl + (1-phi_bl)*mu_ehl
             G_sl = S1 * (d_m**.26) * (((self.fr+fg)**(4/3))+(S2*(fax**(4/3))))
-            self.M_sl = G_sl*mu_sl
+            self.M_sl2 = G_sl*mu_sl
             # Drag moment
             if H/d_m > 1.2:
                 t = 2*math.pi
@@ -99,12 +102,49 @@ class bearingClass:
             int1 = 0.4*k_ball*V_m*(d_m**5)*(n**2)
             int2 = 1.093*(10**-7)*(n**2)*(d_m**3)
             int3 = Rs*((n*(d_m**2)*ft/self.v1)**(-1.379))
-            self.M_drag = int1 + (int2*int3)
-            self.p2 = ((1.05*(10**(-4))))*(self.M_rr + self.M_sl + self.M_drag)*n
+            self.M_drag2 = int1 + (int2*int3)
+            self.p2 = ((1.05*(10**(-4))))*(self.M_rr2 + self.M_sl2 + self.M_drag2)*n
             self.p = self.p1 + self.p2
         elif bearingType == "DG":
             self.p = 50 #W, conservative estimate, do actual math later
+    def bearingPlot(self, bearingType, fax, fr):
+        n_vals = range(6000, 30000, 100)
+        p_vals = []
 
+        for n in n_vals:
+            self.heating(bearingType, n, fax, fr)
+            p_vals.append(self.p)   # assuming heating sets self.p
+
+        plt.figure()
+        plt.plot(n_vals, p_vals)
+        plt.xlabel("RPM")
+        plt.ylabel("Power (W)")
+        plt.title(f"{self.prop} Bearing Power vs RPM")
+        plt.grid(True)
+        plt.show()
+    
+    def bearingSourcePlot(self, bearingType, fax, fr):
+        n_vals = range(6000, 30000, 100)
+        proll_vals = []
+        pslide_vals = []
+        pdrag_vals = []
+
+        for n in n_vals:
+            self.heating(bearingType, n, fax, fr)
+            proll_vals.append((1.05*(10**(-4)))*(self.M_rr2+self.M_rr)*n)
+            pslide_vals.append((1.05*(10**(-4)))*(self.M_sl2+self.M_sl)*n)
+            pdrag_vals.append((1.05*(10**(-4)))*(self.M_drag2+self.M_drag)*n)
+
+        plt.figure()
+        plt.plot(n_vals, proll_vals, label="Rolling")
+        plt.plot(n_vals, pslide_vals, label="Sliding")
+        plt.plot(n_vals, pdrag_vals, label="Drag")
+        plt.xlabel("RPM")
+        plt.ylabel("Power (W)")
+        plt.title(f"{self.prop} Bearing Power vs RPM by Source")
+        plt.grid(True)
+        plt.legend()
+        plt.show()
 
     def bearingSummary(self,bearingType,fax,fr):
         if bearingType == "AC":

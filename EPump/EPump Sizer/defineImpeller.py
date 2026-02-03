@@ -48,7 +48,7 @@ class impellerClass:
         f_R_La = (np.log(12.5 / self.re) /np.log(0.2 * (eps / (2*self.d_2)) + 12.5 / self.re)) ** 2.15
         R = self.d_2/2
         krr = (math.pi * (R) / (2*self.re*s_ax)) + (.02/self.re**.2)*((1+s_ax/R)*fl*f_R_La/(1+(s_ax/2*R)))
-        if self.re < 4*10**5:
+        if self.re > 10**5:
             self.turbulence = 1  
             self.Prr = self.p * 770 * f_R_La * fl / (self.n_q**2 * self.psi**2.5 * self.re**.2)
         else:

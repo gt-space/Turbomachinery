@@ -10,7 +10,7 @@ class sealClass:
         self.d3 = self.d2 + 14 # don't need to account for anything bigger because of the constraint we set
         self.f = .07
         self.k = .5
-        self.dp = ((p_tank + (dp/6894.76) - 95)/1000000)*6894.76 # same vibey estimate for pressure loss before bearings, need to validate later. horrible unit conversions
+        self.dp = ((p_tank + (dp/6894.76) - 200)/1000000)*6894.76 # same vibey estimate for pressure loss before bearings, need to validate later. horrible unit conversions (who uses bars???)
         if self.d1 < 18:
             self.l = 42.5
         elif self.d1 < 24:
@@ -25,7 +25,9 @@ class sealClass:
         self.tfp = self.dp*1.35*(self.br-self.k)
         self.mfd = (self.d3 + self.d1)/2
         self.rt = self.mfd*self.tfp*self.f*self.fa/2000
-        self.p = (self.rt*n)/9548
+        self.p = 1000*(self.rt*n)/9548
+
+
     def sealSummary(self):
         print("=== Seal ===")
         print(f"Seal diameter D1 : {self.d1} mm")

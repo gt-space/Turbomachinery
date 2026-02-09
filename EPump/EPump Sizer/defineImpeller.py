@@ -15,6 +15,7 @@ class impellerClass:
         self.eta_opt = 1 - (0.095*((1/vdot)**m)) - (.3*((.35 - math.log10(self.n_q/23))**2)*((1/vdot)**(.05)))
         m = 0.08 * a * ((1/vdot)**(.15)) * ((45/self.n_q)**(0.06))
         self.eta_H =  1 - (0.055*((1/vdot)**m)) - .2*((.26 - math.log10(self.n_q/25))**2)*((1/vdot)**(.1))
+        self.d_2 = (84.6 / n) * math.sqrt( ((H/self.eta_H*1.15)) / self.psi)
         #  casing gap below impeller
         s_ax = self.d_2*.035
         # inlet diameter
@@ -33,9 +34,9 @@ class impellerClass:
         F_DSp = 1.75 - 0.0083*(eps_sp)
         k_R0 = -5*(10**(-5))*(self.n_q**2) + 9.2*(10**-3)*(self.n_q)+1.91*(10**-1)
         k_RDSp = F_DSp * k_R0
-        F_Rst = k_RDSp * rho * 9.81 * H * self.d_2 * b_2tot
-        F_Rdyn = .12 * rho * 9.81 * H * self.d_2 * b_2tot 
-        self.f_r = F_Rdyn + F_Rst 
+        self.F_Rst = k_RDSp * rho * 9.81 * H * self.d_2 * b_2tot
+        self.F_Rdyn = .05 * rho * 9.81 * H * self.d_2 * b_2tot 
+        self.f_r = self.F_Rdyn + self.F_Rst 
 
         # Disk friction losses
         omega = n * (2*math.pi)/60
@@ -54,7 +55,6 @@ class impellerClass:
         else:
             self.turbulence = 0
             self.Prr = self.p * 38500*krr / (self.n_q**2 * self.psi**2.5)
-
     def summary(self):
         print("=== Impeller ===")
         print(f"Flow rate Q      : {self.Q:.4f} m³/s")

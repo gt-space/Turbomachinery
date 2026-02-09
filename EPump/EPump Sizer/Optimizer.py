@@ -7,13 +7,16 @@ def epumpOpt(prop, deltaP, mdot, MR, p_in):
 
     # Optimization
     x0 = [40000, 2] 
-    bounds = [(15000, 50000), (1, 5)] 
+    if prop == "rp1":
+        bounds = [(10000, 23000), (1, 5)] 
+    elif prop == "lox":
+        bounds = [(10000, 30000), (.5, 1)]
     vec = [prop, deltaP, mdot, MR, p_in]
 
     # Objective function
     def objective(x):
         power, err, _, _ = pumpPower(x, vec)
-        return power + 1e6 * err
+        return power + 1e6 if err > 0 else power
 
     # Run optimization
     optVals = minimize(

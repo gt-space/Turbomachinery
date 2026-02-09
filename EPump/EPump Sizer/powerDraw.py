@@ -50,7 +50,6 @@ def pumpPower(x,vec):
         #deltat in kelvin, pressures are inputted in psi, math in pa, math for bearing done in mpa.
         #1) size Impeller, do beam calcs to find radial forces on bearings
         impeller1 = impellerClass(Q,n,H,rho,e_Rs,d_D,d_H,eta_V,visc_1)
-        impeller2 = impellerClass(Q,n,H/(impeller1.eta_H+.15),rho,e_Rs,d_D,d_H,eta_V,visc_1)
         #2) select bearings based on rpm and forces. For now most calculations skipped because of selection complications
         # assume design has same shaft dimensioning as model as of 9/13
         f_rlower = impeller1.f_r * 23/74
@@ -68,7 +67,7 @@ def pumpPower(x,vec):
         upperBearing.heating("AC",n,impeller1.f_ax,f_rupper)
         lowerBearing.heating("DG",n,0,f_rlower)
         #4) size seals and find heating
-        seal = sealClass(lowerBearing.d1,deltaP,p_tank)
+        seal = sealClass(lowerBearing.d1,deltaP,p_tank/6894.76)
         seal.powerLoss(n)
         #seal.sealSummary()
         #6) find required florwate
@@ -76,13 +75,13 @@ def pumpPower(x,vec):
         Qcooling = Mcooling/rho
         #5)rerun impeller sizing with new mdot
         Qnew = Q + Qcooling
-        eta_Vnew = Q/((Qnew)*1.03) # assuming 3% leak rate
-        impeller3 = impellerClass(Qnew,n,H/(impeller2.eta_H+.15),rho,e_Rs,d_D,d_H,eta_Vnew,visc_1)
+        eta_Vnew = Q/(Qnew)
+        impeller2 = impellerClass(Qnew,n,H,rho,e_Rs,d_D,d_H,eta_Vnew,visc_1)
         #6) apply all power losses and efficiencies
-        p_draw = ((impeller3.p/(impeller3.eta_H)) + seal.p + upperBearing.p + lowerBearing.p)
+        p_draw = ((impeller2.p/(impeller2.eta_H)) + seal.p + upperBearing.p + lowerBearing.p + impeller2.Prr)
         # Penalties/constraints
         err = 0
-        if impeller3.d_2 > .08:
+        if impeller2.d_2 > .1:
             err = 1
         if p_draw > p_all:
             err = 2
@@ -90,21 +89,20 @@ def pumpPower(x,vec):
             err = 3 # breaks the seal code rn. Also generally good, dont want seal face speeds to get too high.
         powerInfo = {
             'Power Draw (W)': p_draw,
-            'Gulich\'s power(W)': impeller3.p/impeller3.eta_opt,
+            'Gulich\'s power(W)': impeller2.p/impeller2.eta_opt,
             'Available Power (W)': p_all,
-            'hydraulic Power (W)': impeller3.p/impeller3.eta_H,
-            'Hydraulic Efficiency': impeller3.eta_H,
+            'hydraulic Power (W)': impeller2.p/impeller2.eta_H,
+            'Hydraulic Efficiency': impeller2.eta_H,
             'Mechanical Parasitic Power (W)': seal.p + upperBearing.p + lowerBearing.p,
-            'Disk Friction Losses (W)': impeller3.Prr,
+            'Disk Friction Losses (W)': impeller2.Prr,
         }
         sizeInfo = {    
             'RPM': n,
             'flow rate (m^3/s)': Qnew,
             'DeltaT (K)': deltaT,
             'Head (m)': H,
-            'Specific Speed': impeller3.n_q,
-            'impeller Diameter (m)': impeller3.d_2,
-            'Reynold\'s number': impeller3.re,
+            'Specific Speed': impeller2.n_q,
+            'Reynold\'s number': impeller2.re,
             #'Shaft Length (m)': 1000000,
         }
         powerInfo = {k: float(v) for k, v in powerInfo.items()}
@@ -156,7 +154,6 @@ def pumpPowerNotebook(x,vec):
         #deltat in kelvin, pressures are inputted in psi, math in pa, math for bearing done in mpa.
         #1) size Impeller, do beam calcs to find radial forces on bearings
         impeller1 = impellerClass(Q,n,H,rho,e_Rs,d_D,d_H,eta_V,visc_1)
-        impeller2 = impellerClass(Q,n,H/(impeller1.eta_H+.15),rho,e_Rs,d_D,d_H,eta_V,visc_1)
         #2) select bearings based on rpm and forces. For now most calculations skipped because of selection complications
         # assume design has same shaft dimensioning as model as of 9/13
         f_rlower = impeller1.f_r * 23/74
@@ -174,7 +171,7 @@ def pumpPowerNotebook(x,vec):
         upperBearing.heating("AC",n,impeller1.f_ax,f_rupper)
         lowerBearing.heating("DG",n,0,f_rlower)
         #4) size seals and find heating
-        seal = sealClass(lowerBearing.d1,deltaP,p_tank)
+        seal = sealClass(lowerBearing.d1,deltaP,p_tank/6894.76)
         seal.powerLoss(n)
         #seal.sealSummary()
         #6) find required florwate
@@ -182,13 +179,13 @@ def pumpPowerNotebook(x,vec):
         Qcooling = Mcooling/rho
         #5)rerun impeller sizing with new mdot
         Qnew = Q + Qcooling
-        eta_Vnew = Q/((Qnew)*1.03) # assuming 3% leak rate
-        impeller3 = impellerClass(Qnew,n,H/(impeller1.eta_H+.15),rho,e_Rs,d_D,d_H,eta_Vnew,visc_1)
+        eta_Vnew = Q/(Qnew)
+        impeller2 = impellerClass(Qnew,n,H,rho,e_Rs,d_D,d_H,eta_Vnew,visc_1)
         #6) apply all power losses and efficiencies
-        p_draw = ((impeller3.p/(impeller3.eta_H)) + seal.p + upperBearing.p + lowerBearing.p)
+        p_draw = ((impeller2.p/(impeller2.eta_H)) + seal.p + upperBearing.p + lowerBearing.p + impeller2.Prr)
         # Penalties/constraints
         err = 0
-        if impeller3.d_2 > .08:
+        if impeller2.d_2 > .1:
             err = 1
         if p_draw > p_all:
             err = 2
@@ -196,23 +193,23 @@ def pumpPowerNotebook(x,vec):
             err = 3 # breaks the seal code rn. Also generally good, dont want seal face speeds to get too high.
         powerInfo = {
             'Power Draw (W)': p_draw,
-            'Gulich\'s power(W)': impeller3.p/impeller3.eta_opt,
+            'Gulich\'s power(W)': impeller2.p/impeller2.eta_opt,
             'Available Power (W)': p_all,
-            'hydraulic Power (W)': impeller3.p/impeller3.eta_H,
-            'Hydraulic Efficiency': impeller3.eta_H,
+            'hydraulic Power (W)': impeller2.p/impeller2.eta_H,
+            'Hydraulic Efficiency': impeller2.eta_H,
             'Mechanical Parasitic Power (W)': seal.p + upperBearing.p + lowerBearing.p,
-            'Disk Friction Losses (W)': impeller3.Prr,
+            'Disk Friction Losses (W)': impeller2.Prr,
         }
         sizeInfo = {    
             'RPM': n,
             'flow rate (m^3/s)': Qnew,
             'DeltaT (K)': deltaT,
             'Head (m)': H,
-            'Specific Speed': impeller3.n_q,
-            'impeller Diameter (m)': impeller3.d_2,
-            'Reynold\'s number': impeller3.re,
+            'Specific Speed': impeller2.n_q,
+            'approx impeller Diameter (m)': impeller2.d_2,
+            'Reynold\'s number': impeller2.re,
             #'Shaft Length (m)': 1000000,
         }
         powerInfo = {k: float(v) for k, v in powerInfo.items()}
         sizeInfo = {k: float(v) for k, v in sizeInfo.items()}
-        return impeller1,impeller2,impeller3, Qcooling, p_draw
+        return impeller1,impeller2, Qcooling, p_draw

@@ -5,7 +5,6 @@ class impellerClass:
         self.Q = vdot
         self.psi = 1.1
         self.n_q = n*(math.sqrt(vdot))*(H**(-3/4))
-        self.d_2 = (84.6 / n) * math.sqrt(H / self.psi)
         #efficiencies
         if vdot <= 1:
             a = 1 

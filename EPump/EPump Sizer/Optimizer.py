@@ -6,7 +6,7 @@ from powerDraw import pumpPower
 def epumpOpt(prop, deltaP, mdot, MR, p_in):
 
     # Optimization
-    x0 = [40000, 2] 
+    x0 = [20000, 1] 
     if prop == "rp1":
         bounds = [(10000, 23000), (1, 5)] 
     elif prop == "lox":

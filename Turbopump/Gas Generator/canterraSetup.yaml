@@ -1,0 +1,23 @@
+#most of these fields go unused and are more for documentation. The unused ones are:
+#1 both mdots
+#2 Ox inlet Temp
+#3 Ox inlet Press
+#4 table parameters to define table
+
+Mechanism: "nDodecane_Reitz.yaml"
+FuelSide:
+ name: RP1
+ mdot: 1.603
+ T_in: 298 #k
+ P_in: 105 #k
+OxSide:
+ name: oxygen
+ mdot: 3.236
+ T_in: 90 #k
+ P_in: 105 #k
+Table:
+ name: GGPropTable
+ numPs: 69
+ numMRs: 91
+ MRrange:: [0.1, 1]
+ Prange: [14, 150]

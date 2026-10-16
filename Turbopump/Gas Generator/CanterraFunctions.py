@@ -66,3 +66,18 @@ def combustionProps(MR=0.5, Pcc=60, soot=False, gas=None, graphite=None):
         cp=gas.cp_mass, cv=gas.cv_mass, gamma=gamma,
         MW=gas.mean_molecular_weight, R=R,
     )
+
+def combustionPropsMethalox(MR=0.5, Pcc=60, gas=None, h_LCH4 = -5.59e6):
+    P = Pcc * psi2pa
+    h_in = (h_LCH4 + MR * h_lox) / (1 + MR)
+ 
+    gas.TPY = 300, P, {"CH4": 1, "O2": MR}
+    gas.equilibrate("TP")
+    gas.HP = h_in, P
+    gas.equilibrate("HP")
+ 
+    return CombustionResult(
+        T=gas.T, rho=gas.density, h=gas.enthalpy_mass, s=gas.entropy_mass,
+        cp=gas.cp_mass, cv=gas.cv_mass, gamma=gas.cp_mass / gas.cv_mass,
+        MW=gas.mean_molecular_weight, R=ct.gas_constant / gas.mean_molecular_weight,
+    )
